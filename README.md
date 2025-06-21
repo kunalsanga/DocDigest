@@ -5,6 +5,8 @@ DocDigest is a full-stack web application that allows users to summarize text fr
 ## Preview
  ![](https://github.com/kunalsanga/DocDigest/blob/main/main.png)
 
+## Deployment Link: https://doc-digest-chi.vercel.app/
+
 ## Features
 
 - **PDF and Text Summarization**: Summarize content from PDF files or pasted text.
