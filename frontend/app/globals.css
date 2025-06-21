@@ -1,0 +1,152 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+  
+  /* Gradient animation variables */
+  --18-x-position: 1.250000000000001%;
+  --18-y-position: 78.4375%;
+  --19-x-position: 38.39843750000001%;
+  --19-y-position: 0%;
+  --20-x-position: 99.21875%;
+  --20-y-position: 66.71875%;
+  --21-x-position: 78.2421875%;
+  --21-y-position: 89.5703125%;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: radial-gradient(100% 100% at var(--18-x-position) var(--18-y-position), #bce3ff -100%, transparent),
+              radial-gradient(100% 100% at var(--19-x-position) var(--19-y-position), #f95b7a -2%, transparent),
+              radial-gradient(100% 100% at var(--20-x-position) var(--20-y-position), #8651ef 24%, transparent),
+              radial-gradient(100% 100% at var(--21-x-position) var(--21-y-position), #83bef5 46%, transparent),
+              #ffffff;
+  animation-name: main;
+  animation-iteration-count: infinite;
+  animation-duration: 10s;
+  transition-timing-function: ease-in;
+  min-height: 100vh;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@property --18-x-position {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 1.250000000000001%;
+}
+
+@property --18-y-position {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 78.4375%;
+}
+
+@property --19-x-position {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 38.39843750000001%;
+}
+
+@property --19-y-position {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
+@property --20-x-position {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 99.21875%;
+}
+
+@property --20-y-position {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 66.71875%;
+}
+
+@property --21-x-position {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 78.2421875%;
+}
+
+@property --21-y-position {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 89.5703125%;
+}
+
+@keyframes main {
+  25% {
+    --18-x-position: 15%;
+    --18-y-position: 15%;
+    --19-x-position: 85%;
+    --19-y-position: 80%;
+  }
+  50% {
+    --18-x-position: 0%;
+    --18-y-position: 99.21875%;
+    --19-x-position: 15%;
+    --19-y-position: 85%;
+    --20-x-position: 20%;
+    --20-y-position: 20%;
+    --21-x-position: 0%;
+    --21-y-position: 99.21875%;
+  }
+}
+
+@keyframes loading {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+/* Custom Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(1.1);
+}
+
+/* Firefox scrollbar styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+} 
