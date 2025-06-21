@@ -7,7 +7,10 @@ app = FastAPI()
 # CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, restrict this to your frontend's domain
+    allow_origins=[
+        "http://localhost:3000",           # Local development
+        "https://doc-digest-chi.vercel.app"  # Deployed frontend
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
