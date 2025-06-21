@@ -4,15 +4,46 @@ from ..models.summary import SummaryRequest, SummaryResponse
 from transformers import BartForConditionalGeneration, BartTokenizer
 from docx import Document
 import io
+import torch
 
 router = APIRouter()
 
-# Load model and tokenizer
-model_name = "facebook/bart-large-cnn"
-tokenizer = BartTokenizer.from_pretrained(model_name)
-model = BartForConditionalGeneration.from_pretrained(model_name)
+# Global variables for model and tokenizer
+model = None
+tokenizer = None
+
+def load_model():
+    """Load model and tokenizer with memory optimizations"""
+    global model, tokenizer
+    if model is None or tokenizer is None:
+        print("Loading model and tokenizer...")
+        model_name = "facebook/bart-large-cnn"
+        
+        # Load tokenizer first
+        tokenizer = BartTokenizer.from_pretrained(model_name)
+        
+        # Load model with optimizations
+        model = BartForConditionalGeneration.from_pretrained(
+            model_name,
+            torch_dtype=torch.float16,  # Use half precision to save memory
+            low_cpu_mem_usage=True,
+            device_map="auto" if torch.cuda.is_available() else None
+        )
+        
+        # Move to CPU if no GPU available
+        if not torch.cuda.is_available():
+            model = model.cpu()
+        
+        print("Model loaded successfully!")
 
 def summarize_text(text: str, length: str) -> str:
+    """Summarize text with memory optimizations"""
+    global model, tokenizer
+    
+    # Load model if not loaded
+    if model is None or tokenizer is None:
+        load_model()
+    
     # Determine summary length
     text_length = len(text.split())
     if length == "short":
@@ -25,18 +56,49 @@ def summarize_text(text: str, length: str) -> str:
         min_length = max(50, int(text_length * 0.4))
         max_length = max(100, int(text_length * 0.6))
         
-    inputs = tokenizer.batch_encode_plus(
-        [text], max_length=1024, return_tensors="pt", truncation=True
-    )
-    summary_ids = model.generate(
-        inputs["input_ids"],
-        num_beams=4,
-        min_length=min_length,
-        max_length=max_length,
-        early_stopping=True,
-    )
-    summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
-    return summary
+    # Process in smaller chunks if text is too long
+    max_input_length = 1024
+    if len(text.split()) > max_input_length:
+        words = text.split()
+        chunks = [' '.join(words[i:i+max_input_length]) for i in range(0, len(words), max_input_length)]
+        summaries = []
+        
+        for chunk in chunks:
+            inputs = tokenizer.batch_encode_plus(
+                [chunk], max_length=max_input_length, return_tensors="pt", truncation=True
+            )
+            
+            with torch.no_grad():  # Disable gradient computation to save memory
+                summary_ids = model.generate(
+                    inputs["input_ids"],
+                    num_beams=2,  # Reduced from 4 to save memory
+                    min_length=min_length // len(chunks),
+                    max_length=max_length // len(chunks),
+                    early_stopping=True,
+                    do_sample=False,
+                )
+            
+            summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+            summaries.append(summary)
+        
+        return ' '.join(summaries)
+    else:
+        inputs = tokenizer.batch_encode_plus(
+            [text], max_length=max_input_length, return_tensors="pt", truncation=True
+        )
+        
+        with torch.no_grad():  # Disable gradient computation to save memory
+            summary_ids = model.generate(
+                inputs["input_ids"],
+                num_beams=2,  # Reduced from 4 to save memory
+                min_length=min_length,
+                max_length=max_length,
+                early_stopping=True,
+                do_sample=False,
+            )
+        
+        summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+        return summary
 
 @router.post("/summarize/text", response_model=SummaryResponse)
 async def summarize_text_route(request: SummaryRequest):
@@ -84,4 +146,9 @@ async def summarize_docx_route(file: UploadFile = File(...), length: str = Form(
         summary = summarize_text(text, length)
         return SummaryResponse(summary=summary)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
+# Health check endpoint
+@router.get("/health")
+async def health_check():
+    return {"status": "healthy", "model_loaded": model is not None} 
