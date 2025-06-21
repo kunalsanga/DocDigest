@@ -2,7 +2,8 @@
 
 DocDigest is a full-stack web application that allows users to summarize text from either raw text input or by uploading a PDF file. It uses a transformer-based model to generate summaries of different lengths (short, medium, long).
 
-# Preview
+## Preview
+ ![](https://github.com/kunalsanga/DocDigest/blob/main/main.png)
 
 ## Features
 
